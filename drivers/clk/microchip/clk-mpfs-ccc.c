@@ -156,7 +156,7 @@ static struct mpfs_ccc_out_hw_clock *mpfs_ccc_pllout_clks[] = {
 	mpfs_ccc_pll0out_clks, mpfs_ccc_pll1out_clks
 };
 
-static int mpfs_ccc_register_outputs(struct device *dev, struct mpfs_ccc_out_hw_clock *out_hws,
+static int mpfs_ccc_register_outputs(struct device *dev, size_t pll_index, struct mpfs_ccc_out_hw_clock *out_hws,
 				     unsigned int num_clks, struct mpfs_ccc_data *data,
 				     struct mpfs_ccc_pll_hw_clock *parent)
 {
@@ -170,7 +170,7 @@ static int mpfs_ccc_register_outputs(struct device *dev, struct mpfs_ccc_out_hw_
 			return -ENOMEM;
 
 		out_hw->divider.hw.init = CLK_HW_INIT_HW(name, &parent->hw, &clk_divider_ops, 0);
-		out_hw->divider.reg = data->pll_base[i / MPFS_CCC_OUTPUTS_PER_PLL] +
+		out_hw->divider.reg = data->pll_base[pll_index] +
 			out_hw->reg_offset;
 
 		ret = devm_clk_hw_register(dev, &out_hw->divider.hw);
@@ -218,7 +218,7 @@ static int mpfs_ccc_register_plls(struct device *dev, struct mpfs_ccc_pll_hw_clo
 
 		data->hw_data.hws[pll_hw->id] = &pll_hw->hw;
 
-		ret = mpfs_ccc_register_outputs(dev, mpfs_ccc_pllout_clks[i],
+		ret = mpfs_ccc_register_outputs(dev, i, mpfs_ccc_pllout_clks[i],
 						MPFS_CCC_OUTPUTS_PER_PLL, data, pll_hw);
 		if (ret)
 			return ret;
